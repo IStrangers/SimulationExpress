@@ -1,32 +1,32 @@
 const HTTP = require("http")
 const URL = require("url")
 const Path = require("path")
-const Router = require("./router")
+const { RouterMapping } = require("./router")
 
 class Appliction {
 
   constructor() {
-    this.router = new Router()
+    this.routerMapping = new RouterMapping()
   }
 
-  get(url,handler) {
+  get(url,...handlers) {
     this.push({
       url,
       method: "get",
-      handler
+      handlers
     })
   }
 
-  post() {
+  post(url,...handlers) {
     this.push({
       url,
       method: "post",
-      handler
+      handlers
     })
   }
 
   push(routerInfo) {
-    this.router.push(routerInfo)
+    this.routerMapping.push(routerInfo)
   }
 
   listen() {
@@ -34,10 +34,9 @@ class Appliction {
       const method = req.method.toLowerCase()
       const { pathname } = URL.parse(req.url)
       const key = `${method}:${pathname}`
-      const routerInfo = this.router.get(key)
-      if(routerInfo) {
-        const { handler } = routerInfo
-        return handler(req,res)
+      const router = this.routerMapping.get(key)
+      if(router) {
+        return router.dispatch(req,res)
       } else {
         res.end(`Cannot ${key}`)
         return
