@@ -26,17 +26,26 @@ class RouterMapping {
   dispatch(req,res) {
     const method = req.method.toLowerCase()
     const { pathname } = URL.parse(req.url)
-    this.useRouters.filter(router => {
-      const { url } = router
-      if((url instanceof RegExp && url.test(url)) || url === pathname) {
-        return true
-      }
-      return false
-    }).forEach(router => router.dispatch(req,res))
     const key = `${method}:${pathname}`
     const router = this.routerMapping.get(key)
     if(router) {
-      return router.dispatch(req,res)
+      const useRouters = this.useRouters.filter(router => {
+        const { url } = router
+        if((url instanceof RegExp && url.test(url)) || url === pathname) {
+          return true
+        }
+        return false
+      })
+      if(useRouters && useRouters.length > 0) {
+        const handlers = [];
+        for(let i = 0; i < useRouters.length; i++) {
+          handlers.push(...useRouters[i].handlers)
+        }
+        handlers.push(...router.handlers)
+        useRouters[0].dispatch.call({handlers},req,res)
+      } else {
+        return router.dispatch(req,res)
+      }
     } else {
       res.end(`Cannot ${key}`)
       return

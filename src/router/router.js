@@ -3,7 +3,6 @@ class Router {
   constructor(method,url,handlers) {
     this.method = method
     this.url = url
-    
     this.handlers = handlers
   }
 

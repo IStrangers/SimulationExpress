@@ -2,11 +2,15 @@ const createApplication = require("../src")
 
 const app = createApplication()
 
-app.use(/\/[A-z]+/,function(req,res) {
+app.use(/\/[A-z]+/,function(req,res,next) {
   req.use = "TestUse"
+  console.log(req.use)
+  next()
 })
-app.use("/test",function(req,res) {
+app.use("/test",function(req,res,next) {
   req.use1 = "TestUse1"
+  console.log(req.use1)
+  next()
 })
 
 app.get("/test",function(req,res,next) {

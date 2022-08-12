@@ -14,7 +14,6 @@ class Appliction {
   }
 
   listen() {
-    console.log(this.routerMapping)
     const server = HTTP.createServer((req,res) => {
       this.routerMapping.dispatch(req,res)
     })
