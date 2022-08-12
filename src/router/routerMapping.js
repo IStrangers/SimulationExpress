@@ -23,19 +23,25 @@ class RouterMapping {
     }
   }
 
+  getUseRoutersByPathName(pathname) {
+    const useRouters = this.useRouters.filter(router => {
+      const { url } = router
+      if((url instanceof RegExp && url.test(pathname)) || url === pathname) {
+        return true
+      }
+      return false
+    })
+    return useRouters
+  }
+
   dispatch(req,res) {
     const method = req.method.toLowerCase()
-    const { pathname } = URL.parse(req.url)
+    const { pathname,query } = URL.parse(req.url)
     const key = `${method}:${pathname}`
     const router = this.routerMapping.get(key)
     if(router) {
-      const useRouters = this.useRouters.filter(router => {
-        const { url } = router
-        if((url instanceof RegExp && url.test(url)) || url === pathname) {
-          return true
-        }
-        return false
-      })
+      toParams(req,query)
+      const useRouters = this.getUseRoutersByPathName(pathname)
       if(useRouters && useRouters.length > 0) {
         const handlers = [];
         for(let i = 0; i < useRouters.length; i++) {
@@ -52,6 +58,14 @@ class RouterMapping {
     }
   }
   
+}
+
+function toParams(req,query) {
+  req.params = {}
+  query && query.split("&").forEach(param => {
+    const kv = param.split("=")
+    req.params[kv[0]] = kv[1]
+  })
 }
 
 module.exports = RouterMapping

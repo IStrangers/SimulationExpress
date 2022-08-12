@@ -27,7 +27,7 @@ app.get("/test",function(req,res,next) {
   next()
 },function(req,res,next) {
   console.log(5)
-  res.end(req.use + req.use1)
+  res.end(JSON.stringify(req.params))
 })
 
 app.post("/test",function(req,res) {
