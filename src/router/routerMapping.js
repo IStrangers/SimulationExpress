@@ -14,12 +14,12 @@ class RouterMapping {
 
   push(routerInfo) {
     const { method,url,handlers } = routerInfo
-    const key = `${method}:${url}`
-    const router = new Router(method,url,handlers)
     if(method === "use") {
-      this.useRouters.push(router)
+      this.useRouters.push(new Router(method,url,handlers))
     } else {
-      this.routerMapping.set(key,router)
+      const [path,restParamKeys] = resolvePathName(url)
+      const key = `${method}:${path}`
+      this.routerMapping.set(key,new Router(method,url,handlers,restParamKeys))
     }
   }
 
@@ -36,11 +36,14 @@ class RouterMapping {
 
   dispatch(req,res) {
     const method = req.method.toLowerCase()
-    const { pathname,query } = URL.parse(req.url)
-    const key = `${method}:${pathname}`
+    let { pathname,query } = URL.parse(req.url)
+    pathname = decodeURI(pathname)
+    const [path,restValues] = resolvePathName(pathname)
+    const key = `${method}:${path}`
     const router = this.routerMapping.get(key)
     if(router) {
-      toParams(req,query)
+      restParamsToParams(req,router.restParamKeys,restValues)
+      queryToParams(req,query)
       const useRouters = this.getUseRoutersByPathName(pathname)
       if(useRouters && useRouters.length > 0) {
         const handlers = [];
@@ -60,8 +63,30 @@ class RouterMapping {
   
 }
 
-function toParams(req,query) {
-  req.params = {}
+function resolvePathName(pathname) {
+  const restValues = []
+  const path = pathname.replace(/\{((?!\/).)*\}/g,function(param) {
+    restValues.push(param.slice(1,param.length - 1))
+    return ""
+  }).replace("//","/")
+  return [path,restValues]
+}
+
+function restParamsToParams(req,restParamKeys,restValues) {
+  if(!req.params) {
+    req.params = {}
+  }
+  for(let i = 0; i < restParamKeys.length; i++) {
+    const paramName = restParamKeys[i]
+    const paramValue = i < restValues.length ? restValues[i] : null
+    req.params[paramName] = paramValue
+  }
+}
+
+function queryToParams(req,query) {
+  if(!req.params) {
+    req.params = {}
+  }
   query && query.split("&").forEach(param => {
     const kv = param.split("=")
     req.params[kv[0]] = kv[1]

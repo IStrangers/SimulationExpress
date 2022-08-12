@@ -1,9 +1,10 @@
 class Router {
 
-  constructor(method,url,handlers) {
+  constructor(method,url,handlers,restParamKeys = []) {
     this.method = method
     this.url = url
     this.handlers = handlers
+    this.restParamKeys = restParamKeys
   }
 
   dispatch(req,res) {

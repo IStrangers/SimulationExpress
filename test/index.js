@@ -34,4 +34,8 @@ app.post("/test",function(req,res) {
   console.log("post")
 })
 
+app.get("/testRestApi/{userId}/fn/{value}",function(req,res) {
+  res.end(JSON.stringify(req.params))
+})
+
 app.listen(8848)
